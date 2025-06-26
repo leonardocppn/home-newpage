@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <title>New Tab</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+
+  <!-- 𝙎𝙏𝙔𝙇𝙀 ------------------------------------------------------------>
+  <style>
+    body{margin:0;font-family:sans-serif;background:#fff;color:#121212;}
+    /* barra preferiti */
+    #barra-preferiti{display:flex;flex-direction:column;gap:10px;padding:20px}
+    #riga-superiore,#riga-inferiore{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+    #bottone-impostazioni,#bottone-aggiungi{
+      width:36px;height:36px;border-radius:50%;border:none;cursor:pointer;
+      background:#fff;color:#000;font-size:20px;line-height:1;transition:.2s
+    }
+    #bottone-impostazioni:hover,#bottone-aggiungi:hover{background:#f0f0f0}
+    #url-input,#label-input{
+      height:20px;padding:6px 10px;font-size:14px;border:1px solid #f0f0f0;
+      border-radius:6px;line-height:1
+    }
+    #lista-preferiti{display:flex;flex-wrap:wrap;gap:10px;margin:0;padding:0;list-style:none}
+    #lista-preferiti li{
+      background:#fff;color:#000;padding:6px 10px;border-radius:20px;
+      display:flex;align-items:center;font-size:14px
+    }
+    #lista-preferiti a{text-decoration:none;color:#333}
+    #lista-preferiti .rimuovi-link{background:none;border:none;color:#999;cursor:pointer;margin-left:8px}
+    #lista-preferiti .rimuovi-link:hover{color:#f00}
+
+    /* barra Google */
+    .google-bar-container{margin:20vh auto 0;max-width:600px;text-align:center}
+    .google-bar-container img{width:350px;height:auto;margin-bottom:40px}
+    #wp-searchbox{width:100%;height:44px;padding:0 16px;font-size:16px;
+      border:1px solid #dfe1e5;border-radius:24px;box-sizing:border-box}
+    #wp-suggestions{
+      position:absolute;top:44px;left:0;right:0;z-index:1000;
+      margin:0;padding:0 16px;list-style:none;border:1px solid #dfe1e5;
+      border-top:none;border-bottom-left-radius:24px;border-bottom-right-radius:24px;
+      background:#fff;color:#000
+    }
+    #wp-suggestions li{padding:10px 0;cursor:pointer}
+    #wp-suggestions li:hover{background:#eee}
+
+    /* citazione */
+    blockquote{margin:60px auto 0;max-width:645px;font-style:italic;text-align:center}
+  </style>
+</head>
+
+<body>
+
+<!-- ----------------- BARRA PREFERITI ------------------ -->
+<div id="barra-preferiti">
+  <div id="riga-superiore">
+    <button id="bottone-impostazioni">☰</button>
+    <ul id="lista-preferiti"></ul>
+  </div>
+
+  <div id="riga-inferiore" style="display:none">
+    <button id="bottone-aggiungi">+</button>
+    <input id="url-input"  type="text" placeholder="https://example.com" style="display:none">
+    <input id="label-input" type="text" placeholder="Etichetta"             style="display:none">
+  </div>
+</div>
+
+<!-- ----------------- GOOGLE SEARCH -------------------- -->
+<div class="google-bar-container">
+  <img src="GoMgle.png" alt="GoMgle">
+  <div style="position:relative">
+    <form action="https://www.google.com/search" method="GET">
+      <input id="wp-searchbox" name="q" autocomplete="off" placeholder="Cerca con Google">
+    </form>
+    <ul id="wp-suggestions"></ul>
+  </div>
+</div>
+
+<!-- ----------------- CITAZIONE DEL GIORNO -------------- -->
+<blockquote id="citazione-marco"></blockquote>
+
+<!-- 𝙅𝙎 ---------------------------------------------------->
+<script>
+/* ======== Preferiti con LocalStorage ======== */
+let edit = false;
+const btnImp   = document.getElementById("bottone-impostazioni");
+const btnAdd   = document.getElementById("bottone-aggiungi");
+const urlIn    = document.getElementById("url-input");
+const labelIn  = document.getElementById("label-input");
+const listFav  = document.getElementById("lista-preferiti");
+const rowDown  = document.getElementById("riga-inferiore");
+
+btnImp.onclick = () => { edit=!edit; rowDown.style.display = edit?"flex":"none"; loadFav(); };
+btnAdd.onclick = () => { urlIn.style.display = labelIn.style.display = "inline-block"; urlIn.focus(); };
+
+function addFav(){
+  let url = urlIn.value.trim();
+  let lab = labelIn.value.trim() || url;
+  if(!/^https?:\/\//i.test(url)) url="https://"+url;
+  if(url){
+    const fav = JSON.parse(localStorage.getItem("sitiPreferiti")||"[]");
+    if(!fav.find(e=>e.url===url)) fav.push({url,label:lab});
+    localStorage.setItem("sitiPreferiti",JSON.stringify(fav));
+    urlIn.value = labelIn.value = ""; urlIn.style.display = labelIn.style.display = "none";
+    loadFav();
+  }
+}
+urlIn.addEventListener("keypress",e=>e.key==="Enter"&&addFav());
+labelIn.addEventListener("keypress",e=>e.key==="Enter"&&addFav());
+
+function loadFav(){
+  listFav.innerHTML="";
+  const fav = JSON.parse(localStorage.getItem("sitiPreferiti")||"[]");
+  fav.forEach((f,i)=>{
+    const li=document.createElement("li");
+    li.innerHTML=`<a href="${f.url}" target="_blank">${f.label}</a>`;
+    if(edit){
+      const rm=document.createElement("button");
+      rm.textContent="✕"; rm.className="rimuovi-link";
+      rm.onclick=()=>{fav.splice(i,1);localStorage.setItem("sitiPreferiti",JSON.stringify(fav));loadFav();};
+      li.appendChild(rm);
+    }
+    listFav.appendChild(li);
+  });
+}
+loadFav();
+
+/* ======== Google autocomplete (richiede proxy.php) ======== */
+const box = document.getElementById('wp-searchbox');
+const sug = document.getElementById('wp-suggestions');
+box.addEventListener('input', ()=>{
+  const q = box.value.trim();
+  if(q.length<2){sug.innerHTML="";return;}
+  fetch('./proxy.php?q='+encodeURIComponent(q))
+    .then(r=>r.json())
+    .then(d=>{
+      sug.innerHTML = d[1].slice(0,5)
+        .map(t=>`<li>${t}</li>`).join('');
+    }).catch(()=>sug.innerHTML="");
+});
+sug.onclick = e=>{
+  if(e.target.tagName==='LI'){
+    box.value=e.target.textContent; sug.innerHTML=''; box.form.submit();
+  }
+};
+document.addEventListener('click',e=>{
+  if(!box.contains(e.target)&&!sug.contains(e.target)) sug.innerHTML='';
+});
+
+/* ======== Citazione del giorno ======== */
+const citazioni = [
+  "La semplicità è la massima sofisticazione. — L. da Vinci",
+  "Chi osa vince. — Proverbio",
+  "...aggiungi qui le tue 365 citazioni..."
+];
+const day = Math.floor((Date.now()-new Date(new Date().getFullYear(),0,0))/86400000);
+document.getElementById("citazione-marco").textContent = citazioni[day % citazioni.length];
+</script>
+</body>
+</html>
