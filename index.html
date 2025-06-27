@@ -30,8 +30,8 @@
     #lista-preferiti .rimuovi-link:hover{color:#f00}
 
     /* barra Google */
-    .google-bar-container{margin:17vh auto 0;max-width:600px;text-align:center}
-    .google-bar-container img{width:350px;height:auto;margin-bottom:40px}
+    .google-bar-container{margin:16vh auto 0;max-width:600px;text-align:center}
+    .google-bar-container img{max-width:390px;height:auto;margin-bottom:40px; padding-left: 20px; padding-right: 20px;}
     #wp-searchbox{width:100%;height:44px;padding:0 16px;font-size:16px;
       border:1px solid #dfe1e5;border-radius:24px;box-sizing:border-box}
     #wp-suggestions{
@@ -166,6 +166,5 @@ sug.onclick = e=>{
 document.addEventListener('click',e=>{
   if(!box.contains(e.target)&&!sug.contains(e.target)) sug.innerHTML='';
 });
-
 </body>
 </html>
