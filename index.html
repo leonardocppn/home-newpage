@@ -9,8 +9,19 @@
   <style>
     body{margin:0;font-family:sans-serif;background:#fff;color:#121212;}
     /* barra preferiti */
-    #barra-preferiti{display:flex;flex-direction:column;gap:10px;padding:20px}
-    #riga-superiore,#riga-inferiore{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+    #barra-preferiti{display:flex;flex-direction:column;gap:10px;padding:20px; position: relative;}
+    #riga-superiore{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+    #riga-inferiore{
+  position: absolute;     /* NOVITÀ: la toglie dal flusso */
+  top: 52px;              /* distanza dal bordo superiore di barra-preferiti
+                             (36 px pulsante + gap 10 px + un po’ di margine) */
+  left: 20px;             /* stesso padding orizzontale di #barra-preferiti */
+  background:#fff;        /* sfondo pieno, così copre ciò che c’è sotto       */
+  padding:10px;           /* piccolo bordo interno per respirare              */
+  border-radius:10px;
+  box-shadow:0 2px 6px rgba(0,0,0,.15);
+  gap:10px;               /* serve perché flex-wrap non vale più col nuovo posizionamento */
+}
     #bottone-impostazioni,#bottone-aggiungi{
       width:36px;height:36px;border-radius:50%;border:none;cursor:pointer;
       background:#fff;color:#000;font-size:20px;line-height:1;transition:.2s
